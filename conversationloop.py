@@ -1,10 +1,10 @@
 import openai
 import os
 import json
-import logging 
+import logging
 from collections import deque
-from dotenv import load_dotenv 
-from typing import Deque 
+from dotenv import load_dotenv
+from typing import Deque
 from tkinter import Tk, Label, Button, Entry, StringVar, OptionMenu 
 
 # Load environment variables from .env file
@@ -16,15 +16,17 @@ logging.basicConfig(level=logging.INFO)
 # Load the OpenAI API key from environment variable
 openai.api_key = os.getenv('OPENAI_API_KEY', 'default_value') 
 
-if openai.api_key is 'default_value':
+# Check if OpenAI API key is set
+if openai.api_key == 'default_value':
     logging.error("OPENAI_API_KEY is not set in the environment variables.")
     exit(1) 
 
 # Define the chat models
 chat_model = "gpt-3.5-turbo" 
 
-# Define the system roles from text files
+# Function to read system roles from text files
 def read_file(file_name: str) -> str:
+    """Reads a file and returns its content. Handles errors for file not found, permission error, and directory error."""
     try:
         with open(file_name, 'r') as file:
             return file.read().replace('\n', '')
@@ -32,18 +34,19 @@ def read_file(file_name: str) -> str:
         logging.error(f"Error reading {file_name}: {e}")
         return '' 
 
+# Define the system roles
 chatbot1_role = read_file('Mrs_Writer.txt')
 chatbot2_role = read_file('Mr_Editor.txt') 
 
-# Initialize the conversation
 def initialize_conversation() -> Deque:
+    """Initializes the conversation with system roles."""
     conversation = deque()
     conversation.append({"role": "system", "content": f"I'm a helpful assistant. {chatbot1_role}"})
     conversation.append({"role": "system", "content": f"I'm a helpful assistant. {chatbot2_role}"})
     return conversation 
 
-# Define the conversation loop
 def conversation_loop(conversation: Deque, content_type: str, subject_matter: str) -> None:
+    """Defines the conversation loop between the two chatbots."""
     try:
         for i in range(10):
             for chatbot_role in [(chatbot1_role, "Mrs Writer"), (chatbot2_role, "Mr Editor")]:
@@ -54,19 +57,20 @@ def conversation_loop(conversation: Deque, content_type: str, subject_matter: st
     except Exception as e:
         logging.error(f"An error occurred: {e}") 
 
-# Print the conversation
 def print_conversation(conversation: Deque) -> None:
+    """Prints the conversation."""
     for message in conversation:
         print(f"{message['role']}: {message['content']}") 
 
-# New code for GUI
 class UserInput:
+    """Class for GUI user input.""" 
+
     def __init__(self, master):
         self.master = master
         master.title("Content Creation") 
 
         self.content_type = StringVar(master)
-        self.content_type.set("Article") # default value 
+        self.content_type.set("Article")  # default value 
 
         self.label = Label(master, text="Content Type:")
         self.option = OptionMenu(master, self.content_type, "Article", "Blog Post", "Short Story")
@@ -82,6 +86,7 @@ class UserInput:
         self.submit_button.pack() 
 
     def submit(self):
+        """Submits the user input and starts the conversation loop."""
         content_type = self.content_type.get()
         subject_matter = self.entry.get()
         conversation = initialize_conversation()
@@ -89,3 +94,5 @@ class UserInput:
         print_conversation(conversation) 
 
 root = Tk()
+user_input = UserInput(root)
+root.mainloop()
