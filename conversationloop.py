@@ -61,7 +61,10 @@ def conversation_loop(conversation: deque, content_type: str, subject_matter: st
                     messages=list(conversation),
                     timeout=10
                 )
-                conversation.append({"role": "assistant", "content": response['choices'][0]['message']['content']})
+                if 'choices' in response and len(response['choices']) > 0:
+                    conversation.append({"role": "assistant", "content": response['choices'][0]['message']['content']})
+                else:
+                    raise Exception("No response from OpenAI API")
     except Exception as e:
         logging.error(f"An error occurred: {e}")
 
